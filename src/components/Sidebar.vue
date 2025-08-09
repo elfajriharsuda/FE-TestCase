@@ -1,26 +1,42 @@
 <template>
-  <aside class="hidden md:flex md:w-64 bg-white border-r h-screen fixed left-0 top-0">
-    <div class="w-full p-6 flex flex-col">
+  <aside :class="[
+      'hidden md:flex bg-white border-r h-screen fixed left-0 top-0 transition-[width] duration-200',
+      collapsed ? 'md:w-20' : 'md:w-64'
+    ]">
+    <div class="w-full p-4 sm:p-6 flex flex-col">
       <!-- Brand -->
-      <h1 class="text-xl font-semibold">Dummy Store</h1>
-      <div class="text-sm mt-8 text-gray-500 mt-2">
+      <div class="flex items-center gap-3">
+        <div :class="[
+            'rounded-lg bg-gray-900 text-white grid place-items-center font-bold',
+            collapsed ? 'w-12 h-12 text-lg' : 'w-9 h-9'
+          ]">D</div>
+        <h1 v-if="!collapsed" class="text-xl font-semibold">Dummy Store</h1>
+      </div>
+      <div v-if="!collapsed" class="text-sm mt-8 text-gray-500 mt-2">
         <p>Navigation</p>
       </div>
       <!-- Nav -->
       <nav class="space-y-2 mt-6">
-        <RouterLink v-for="l in links" :key="l.to" :to="l.to"
-          class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100"
-          active-class="bg-gray-100 font-medium">
-          <component :is="l.icon" class="w-5 h-5"/>
-          <span>{{ l.label }}</span>
-          <span v-if="l.badge" class="ml-auto text-xs bg-gray-900 text-white rounded-full px-1.5 py-0.5">
+        <RouterLink
+          v-for="l in links"
+          :key="l.to"
+          :to="l.to"
+          :class="[
+            'flex items-center rounded-lg hover:bg-gray-100',
+            collapsed ? 'justify-center px-2 py-3' : 'gap-2 px-3 py-2'
+          ]"
+          active-class="bg-gray-100 font-medium"
+        >
+          <component :is="l.icon" :class="[collapsed ? 'w-7 h-7' : 'w-5 h-5']"/>
+          <span v-if="!collapsed">{{ l.label }}</span>
+          <span v-if="!collapsed && l.badge" class="ml-auto text-xs bg-gray-900 text-white rounded-full px-1.5 py-0.5">
             {{ l.badge }}
           </span>
         </RouterLink>
       </nav>
 
       <!-- User (stick to bottom) -->
-      <div class="mt-auto pt-6">
+      <div v-if="!collapsed" class="mt-auto pt-6">
         <div class="flex items-center gap-3 p-3 rounded-xl border bg-white">
           <img
             :src="avatar"
@@ -49,6 +65,8 @@ import {
   ShoppingCartIcon, ClipboardDocumentListIcon
 } from '@heroicons/vue/24/outline'
 
+const props = defineProps({ collapsed: { type: Boolean, default: false } })
+
 const cart = useCartStore()
 cart.init()
 const { totalQuantity } = storeToRefs(cart)
@@ -71,4 +89,6 @@ const fallback = ref(
 )
 const avatar = computed(() => auth.user?.image || fallback.value)
 const onImgError = () => { /* pakai fallback kalau image broken */ }
+
+const collapsed = computed(() => props.collapsed)
 </script>
