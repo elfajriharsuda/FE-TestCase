@@ -50,6 +50,7 @@ import { reactive, watch } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionRoot } from '@headlessui/vue'
 import api from '@/services/api'
 import { addLocalProduct, updateLocalProduct } from '@/services/localProducts'
+import { setEdit } from '@/services/localEdits'
 
 const props = defineProps({ open:Boolean, initial:Object })
 const emit = defineEmits(['close','saved'])
@@ -64,8 +65,10 @@ const onSubmit = async ()=>{
     if (props.initial._local) {
       saved = updateLocalProduct({ ...props.initial, ...payload })
     } else {
-      const res = await api.put(`/products/${props.initial.id}`, payload)
-      saved = res.data
+      // Try to update remote API (may be mocked), but always persist locally
+      try { await api.put(`/products/${props.initial.id}`, payload) } catch {}
+      setEdit(props.initial.id, payload)
+      saved = { ...props.initial, ...payload }
     }
   } else {
     // Create locally so it persists across reloads

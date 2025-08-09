@@ -21,7 +21,18 @@
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import api from '@/services/api'
 import { ref, onMounted } from 'vue'
+import { loadLocalProducts } from '@/services/localProducts'
+import { applyEditTo } from '@/services/localEdits'
 import { useRoute } from 'vue-router'
 const p = ref(null); const route = useRoute()
-onMounted(async()=>{ p.value = (await api.get(`/products/${route.params.id}`)).data })
+onMounted(async()=>{
+  const id = String(route.params.id)
+  if (id.startsWith('L')) {
+    const locals = loadLocalProducts()
+    p.value = locals.find(x => String(x.id) === id) || null
+  } else {
+    const res = await api.get(`/products/${id}`)
+    p.value = applyEditTo(res.data)
+  }
+})
 </script>

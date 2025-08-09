@@ -61,6 +61,7 @@ import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import ProductFormModal from './ProductModal.vue'
 import api from '@/services/api'
 import { loadLocalProducts, removeLocalProduct } from '@/services/localProducts'
+import { applyEditsToList, removeEdit } from '@/services/localEdits'
 import { PencilSquareIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import { ref, onMounted } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionRoot } from '@headlessui/vue'
@@ -74,7 +75,7 @@ const fetchProducts = async()=> {
   const remote = data.products || []
   const locals = loadLocalProducts()
   const merged = [...locals, ...remote.filter(r => !locals.some(l => String(l.id) === String(r.id)))]
-  products.value = merged
+  products.value = applyEditsToList(merged)
 }
 const openModal = (p=null)=>{ editing.value=p; modalOpen.value=true }
 const deleteOpen = ref(false)
@@ -87,6 +88,7 @@ const confirmDelete = async()=>{
     removeLocalProduct(p.id)
   } else {
     await api.delete(`/products/${p.id}`)
+    removeEdit(p.id)
   }
   const idx = products.value.findIndex(x=>String(x.id)===String(p.id))
   if(idx>=0) products.value.splice(idx,1)
